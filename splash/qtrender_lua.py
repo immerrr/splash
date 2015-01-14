@@ -4,6 +4,7 @@ import os
 import json
 import functools
 import itertools
+import resource
 
 import lupa
 
@@ -453,6 +454,12 @@ class Splash(object):
     @command()
     def url(self):
         return self.tab.url
+
+    @command()
+    def getrusage(self):
+        rusage = resource.getrusage(resource.RUSAGE_SELF)
+        return {'maxrss': rusage.ru_maxrss,
+                'cputime': rusage.ru_utime + rusage.ru_stime}
 
     def get_real_exception(self):
         if self._exceptions:
