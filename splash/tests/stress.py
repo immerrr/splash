@@ -143,7 +143,7 @@ def lua_runonce(script, timeout=60.):
 
 
 def benchmark_png(url, viewport='full', wait=0.5,
-                  width=None, height=None, nrepeats=3):
+                  width=None, height=None, nrepeats=3, timeout=60.):
     if width is None:
         width = 'nil'
     if height is None:
@@ -174,7 +174,7 @@ end
     """ % {'url': repr(url), 'width': width, 'height': height,
            'nrepeats': nrepeats, 'wait': float(wait),
            'viewport': repr(viewport)}
-    return json.loads(lua_runonce(f))
+    return json.loads(lua_runonce(f, timeout=timeout))
 
 
 def parse_opts():
