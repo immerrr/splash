@@ -123,58 +123,63 @@ class ArgsFromLogfile(object):
                 yield d['args']
 
 
-def lua_runonce(script, timeout=60.):
+def lua_runonce(script, timeout=60., **kwargs):
     """ Start splash server, execute lua script in it and return the output.
 
     :type script: str
     :param script: Script to be executed.
     :type timeout: float
     :param timeout: Timeout value for the execution request.
+    :type kwargs: dict
+    :param kwargs: Any other parameters are passed as arguments to the request
+                   and will be available via ``splash.args``.
 
     """
     with SplashServer() as s:
-        resp = requests.get(s.url('execute'),
-                            params={'lua_source': script},
-                            timeout=timeout)
+        params = {'lua_source': script}
+        params.update(kwargs)
+        resp = requests.get(s.url('execute'), params=params, timeout=timeout)
         if resp.ok:
-            return resp.text
+            return resp.content
         else:
             raise RuntimeError(resp.text)
 
 
 def benchmark_png(url, viewport='full', wait=0.5,
                   width=None, height=None, nrepeats=3, timeout=60.):
-    if width is None:
-        width = 'nil'
-    if height is None:
-        height = 'nil'
-
     f = """
 function main(splash)
-    resp, err = splash:go(%(url)s)
+    local resp, err = splash:go(splash.args.url)
     assert(resp, err)
+    assert(splash:wait(tonumber(splash.args.wait)))
 
-    assert(splash:wait(%(wait)f))
-    assert(splash:set_viewport(%(viewport)s))
+    -- if viewport is 'full' it should be set only after waiting
+    if splash.args.viewport ~= nil and splash.args.viewport ~= "full" then
+      local w, h = string.match(splash.args.viewport, '^(%d+)x(%d+)')
+      if w == nil or h == nil then
+        error('Invalid viewport size format: ' .. splash.args.viewport)
+      end
+      self:set_viewport_size(tonumber(w), tonumber(h))
+    end
 
-    susage = splash:getrusage()
-    stime = os.clock()
-    for i = 1, %(nrepeats)d do
-        png, err = splash:png{width=%(width)s, height=%(height)s}
+    local susage = splash:get_perf_stats()
+    local nrepeats = tonumber(splash.args.nrepeats)
+    for i = 1, nrepeats do
+        local png, err = splash:png{width=splash.args.width,
+                                    height=splash.args.height}
         assert(png, err)
     end
-    etime = os.clock()
-    eusage = splash:getrusage()
+    local eusage = splash:get_perf_stats()
     return {
-        wallclock_secs=(etime - stime) / %(nrepeats)d,
+        wallclock_secs=(eusage.walltime - susage.walltime) / nrepeats,
         maxrss=eusage.maxrss,
-        cpu_secs=(eusage.cputime - susage.cputime) / %(nrepeats)d
+        cpu_secs=(eusage.cputime - susage.cputime) / nrepeats
     }
 end
-    """ % {'url': repr(url), 'width': width, 'height': height,
-           'nrepeats': nrepeats, 'wait': float(wait),
-           'viewport': repr(viewport)}
-    return json.loads(lua_runonce(f, timeout=timeout))
+    """
+    return json.loads(lua_runonce(
+        f, url=url, width=width, height=height,
+        nrepeats=nrepeats, wait=wait, viewport=viewport, timeout=timeout))
 
 
 def parse_opts():
