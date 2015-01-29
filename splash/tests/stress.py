@@ -153,13 +153,8 @@ function main(splash)
     assert(resp, err)
     assert(splash:wait(tonumber(splash.args.wait)))
 
-    -- if viewport is 'full' it should be set only after waiting
-    if splash.args.viewport ~= nil and splash.args.viewport ~= "full" then
-      local w, h = string.match(splash.args.viewport, '^(%d+)x(%d+)')
-      if w == nil or h == nil then
-        error('Invalid viewport size format: ' .. splash.args.viewport)
-      end
-      self:set_viewport_size(tonumber(w), tonumber(h))
+    if splash.args.viewport ~= nil then
+      splash:set_viewport(splash.args.viewport)
     end
 
     local susage = splash:get_perf_stats()
