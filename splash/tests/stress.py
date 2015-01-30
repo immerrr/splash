@@ -149,6 +149,7 @@ def benchmark_png(url, viewport='full', wait=0.5,
                   width=None, height=None, nrepeats=3, timeout=60.):
     f = """
 function main(splash)
+    splash:set_viewport('1024x768')
     local resp, err = splash:go(splash.args.url)
     assert(resp, err)
     assert(splash:wait(tonumber(splash.args.wait)))
