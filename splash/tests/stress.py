@@ -159,8 +159,9 @@ function main(splash)
 
     local susage = splash:get_perf_stats()
     local nrepeats = tonumber(splash.args.nrepeats)
+    local png, err
     for i = 1, nrepeats do
-        local png, err = splash:png{width=splash.args.width,
+        png, err = splash:png{width=splash.args.width,
                                     height=splash.args.height}
         assert(png, err)
     end
@@ -168,7 +169,8 @@ function main(splash)
     return {
         wallclock_secs=(eusage.walltime - susage.walltime) / nrepeats,
         maxrss=eusage.maxrss,
-        cpu_secs=(eusage.cputime - susage.cputime) / nrepeats
+        cpu_secs=(eusage.cputime - susage.cputime) / nrepeats,
+        png=png,
     }
 end
     """
