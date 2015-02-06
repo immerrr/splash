@@ -3,8 +3,8 @@ from itertools import islice
 from Queue import Queue
 from threading import Thread
 from collections import Counter
-import requests
 
+from splash import defaults
 from .utils import SplashServer
 
 class StressTest():
@@ -135,7 +135,11 @@ def lua_runonce(script, timeout=60., **kwargs):
                    and will be available via ``splash.args``.
 
     """
-    with SplashServer() as s:
+    args = [
+        '--disable-lua-sandbox',
+        '--allowed-schemes=%s' % ','.join(defaults.ALLOWED_SCHEMES + ['file']),
+    ]
+    with SplashServer(extra_args=args) as s:
         params = {'lua_source': script}
         params.update(kwargs)
         resp = requests.get(s.url('execute'), params=params, timeout=timeout)
