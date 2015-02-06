@@ -491,6 +491,9 @@ class BrowserTab(QObject):
         self.logger.log("getting PNG, width=%r, height=%r" % (width, height),
                         min_level=2)
 
+        sz = self.web_page.viewportSize()
+        if max(sz.width(), sz.height()) >= 32768:
+            raise ValueError("The viewport is too big for QPainter to draw on.")
         image = QImage(self.web_page.viewportSize(), QImage.Format_ARGB32)
         painter = QPainter(image)
         self.web_page.mainFrame().render(painter)
