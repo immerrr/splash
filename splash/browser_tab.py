@@ -488,7 +488,8 @@ class BrowserTab(QObject):
 
     def png(self, width=None, height=None, b64=False):
         """ Return screenshot in PNG format """
-        self.logger.log("getting PNG", min_level=2)
+        self.logger.log("getting PNG, width=%r, height=%r" % (width, height),
+                        min_level=2)
 
         image = QImage(self.web_page.viewportSize(), QImage.Format_ARGB32)
         painter = QPainter(image)
@@ -498,6 +499,8 @@ class BrowserTab(QObject):
 
         if width:
             image = image.scaledToWidth(width, Qt.SmoothTransformation)
+        else:
+            width = image.width()
         if height:
             image = image.copy(0, 0, width, height)
         b = QBuffer()
