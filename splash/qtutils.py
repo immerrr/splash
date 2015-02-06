@@ -410,7 +410,7 @@ def _get_viewport_and_image_size(orig_size, width, height):
         if orig_width > 0:
             # If size.width() != 0, maintain the ratio.
             ratio = width / float(orig_width)
-            viewport_height = int(orig_height * ratio)
+            viewport_height = round(orig_height * ratio)
         viewport_width = width
 
     image_width = viewport_width
